@@ -62,3 +62,71 @@ class Game2048:
         for i in range(self.grid_size):
             new_grid.append(list(reversed(grid[i])))
         return new_grid
+
+
+    def transpose(self, grid):
+        new_grid = [[0] * self.grid_size for _ in range(self.grid_size)]
+        for i in range(self.grid_size):
+            for j in range(self.grid_size):
+                new_grid[i][j] = grid[j][i]
+        return new_grid
+
+    def move_tiles(self, direction):
+        if direction == 'Left':
+            self.grid = self.compress(self.grid)
+            self.grid = self.merge(self.grid)
+            self.grid = self.compress(self.grid)
+
+        elif direction == 'Right':
+            self.grid = self.reverse(self.grid)
+            self.grid = self.compress(self.grid)
+            self.grid = self.merge(self.grid)
+            self.grid = self.compress(self.grid)
+            self.grid = self.reverse(self.grid)
+
+        elif direction == 'Up':
+            self.grid = self.transpose(self.grid)
+            self.grid = self.compress(self.grid)
+            self.grid = self.merge(self.grid)
+            self.grid = self.compress(self.grid)
+            self.grid = self.transpose(self.grid)
+
+        elif direction == 'Down':
+            self.grid = self.transpose(self.grid)
+            self.grid = self.reverse(self.grid)
+            self.grid = self.compress(self.grid)
+            self.grid = self.merge(self.grid)
+            self.grid = self.compress(self.grid)
+            self.grid = self.reverse(self.grid)
+            self.grid = self.transpose(self.grid)
+
+    def check_game_over(self):
+        for i in range(self.grid_size):
+            for j in range(self.grid_size):
+                if self.grid[i][j] == 0:
+                    return False
+                if i < self.grid_size - 1 and self.grid[i][j] == self.grid[i + 1][j]:
+                    return False
+                if j < self.grid_size - 1 and self.grid[i][j] == self.grid[i][j + 1]:
+                    return False
+        return True
+
+    def game_over(self):
+        self.canvas.create_text(self.grid_size*self.cell_size//2, self.grid_size*self.cell_size//2, 
+                                text="Game Over", font=("Helvetica", 36), fill="red")
+
+    def key_handler(self, event):
+        key = event.keysym
+        if key in ('Up', 'Down', 'Left', 'Right'):
+            previous_grid = [row[:] for row in self.grid]
+            self.move_tiles(key)
+            if self.grid != previous_grid:
+                self.add_new_tile()
+            self.update_grid_display()
+            if self.check_game_over():
+                self.game_over()
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    game = Game2048(root)
+    root.mainloop()
